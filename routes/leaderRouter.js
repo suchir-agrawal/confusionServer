@@ -1,44 +1,84 @@
 const express = require('express')
 const router = express.Router()
+const mongoose = require('mongoose')
+const Leaders = require('../models/leaders')
+const bodyParser = require('body-parser')
 
-
+router.use(bodyParser.json())
 
 
 router.route('/')
-.all((req,res,next) => {
-    res.statusCode = 200;
-    res.setHeader('Context-Type', 'text/plain');
-    next();
+.get((req,res,next) => {
+    Leaders.find({})
+    .then((leaders) => {
+        res.statusCode=200
+        res.header('Context-type', 'application/json')
+        res.json(leaders)
+    }, (err) => next(err))
+    .catch((err) => next(err))
 })
-.get((req,res) => {
-    res.end("Will provide you detail of all the leaders")
-})
-.post((req,res) => {
-    res.end("will add the leader: "+ req.body.name + " with description: " + req.body.description);
+.post((req,res,next) => {
+    Leaders.create(req.body)
+    .then((leader) => {
+        console.log("Leader Created")
+        res.statusCode=200
+        res.header('Context-type', 'application/json')
+        res.json(leader)
+    }, (err) => next(err))
+    .catch((err) => next(err))
 })
 .put((req,res) => {
     res.statusCode=403;
-    res.end("PUT method for leaders is not supported")
+    res.end("PUT method for Leaders is not supported")
 })
 .delete((req,res) => {
-    res.end("Will delete all leaders for you.")
+    Leaders.remove({})
+    .then((leaders) => {
+        console.log("All records get deleted")
+        res.statusCode=200
+        res.header('Context-type', 'application/json')
+        res.json(leaders)
+    }, (err) => next(err))
+    .catch((err) => next(err))
+    
 })
 
 
 router.route('/:leaderID')
 .get((req,res) => {
-    res.end("Will provide you with detail of the leader with leaderID: "+ req.params.leaderID)
+    Leaders.findById(req.params.leaderID)
+    .then((leader) => {
+        res.statusCode=200
+        res.header('Context-type', 'application/json')
+        res.json(leader)
+    }, (err) => next(err))
+    .catch((err) => next(err))
 })
 .post((req,res) => {
     res.statusCode=403
-    res.end("POST operation for leader: "+ req.params.leaderID +" is not supported");
+    res.end("POST operation for pleader: "+ req.params.leaderID +" is not supported");
 })
 .put( (req,res) => {
-    res.write("Update leader: "+ req.params.leaderID)
-    res.end("will update the leader: "+ req.body.name + "with description" + req.body.description)
+    // res.write("Update promotion: "+ req.params.promotionID)
+    // res.end("will update the promotion: "+ req.body.name + "with description" + req.body.description)
+    Leaders.findByIdAndUpdate(req.params.leaderID, {
+        $set: req.body
+    }, { new: true})
+    .then((leader) => {
+        res.statusCode=200
+        res.header('Context-type', 'application/json')
+        res.json(leader)
+    }, (err) => next(err))
+    .catch((err) => next(err))
 })
 .delete((req,res) => {
-    res.end("Will delete leader with ID: "+req.params.leaderID)
+    Leaders.findByIdAndRemove(req.params.leaderID)
+    .then((leader) => {
+        res.statusCode=200
+        res.header('Context-type', 'application/json')
+        res.json(leader)
+    }, (err) => next(err))
+    .catch((err) => next(err))
 })
 
 module.exports=router
